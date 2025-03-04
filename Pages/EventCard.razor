@@ -1,0 +1,22 @@
+@using EventEase.Models
+@inject NavigationManager Navigation
+@code {
+    [Parameter] public Event? EventData { get; set; }
+
+    private void NavigateToDetails()
+    {
+        if (EventData != null)
+        {
+            Navigation.NavigateTo($"/eventdetails/{EventData.Id}");
+        }
+    }
+}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@EventData?.Name</h5>
+        <h6 class="card-subtitle mb-2 text-muted">@EventData?.Date.ToShortDateString()</h6>
+        <p class="card-text">@EventData?.Location</p>
+        <button class="btn btn-primary" @onclick="NavigateToDetails">View Details</button>
+    </div>
+</div>

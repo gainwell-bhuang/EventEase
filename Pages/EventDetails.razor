@@ -1,0 +1,48 @@
+@page "/eventdetails/{id:int}"
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<h3>Event Details</h3>
+
+@if (eventDetails == null)
+{
+    <p>Loading event details...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@eventDetails.Name</h5>
+            <h6 class="card-subtitle mb-2 text-muted">@eventDetails.Date.ToShortDateString()</h6>
+            <p class="card-text"><strong>Location:</strong> @eventDetails.Location</p>
+            <p class="card-text"><strong>Description:</strong> @eventDetails.Description</p>
+            
+            <!-- Navigate to RegisterEvent.razor -->
+            <button class="btn btn-primary" @onclick="Register">Register</button>
+            <button class="btn btn-secondary" @onclick="GoBack">Back to Events</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Event? eventDetails;
+
+    protected override async Task OnInitializedAsync()
+    {
+        eventDetails = await EventService.GetEventById(Id);
+    }
+
+    private void Register()
+    {
+        if (eventDetails != null)
+        {
+            Navigation.NavigateTo($"/register/{eventDetails.Id}");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/events");
+    }
+}
