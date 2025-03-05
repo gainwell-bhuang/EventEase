@@ -1029,3 +1029,4 @@ C:\Users\bhuang\source\repos\gainwell-bhuang\EventEase\obj\Debug\net8.0\EventEas
 C:\Users\bhuang\source\repos\gainwell-bhuang\EventEase\obj\Debug\net8.0\refint\EventEase.dll
 C:\Users\bhuang\source\repos\gainwell-bhuang\EventEase\obj\Debug\net8.0\EventEase.pdb
 C:\Users\bhuang\source\repos\gainwell-bhuang\EventEase\obj\Debug\net8.0\ref\EventEase.dll
+C:\Users\bhuang\source\repos\gainwell-bhuang\EventEase\obj\Debug\net8.0\EventEase.sourcelink.json

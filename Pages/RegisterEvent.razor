@@ -1,6 +1,12 @@
 @page "/register/{eventId:int}"
+@using global::EventEase.Models
+@using global::EventEase.Services
 @inject IEventService EventService
+@inject AttendanceService AttendanceService
+@inject UserSessionService UserSessionService
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
 
 <h3>Register for Event</h3>
 
@@ -20,20 +26,40 @@ else
             <hr />
 
             <h5>Attendee Information</h5>
-            <div>
-                <label>Name:</label>
-                <input type="text" @bind="attendee.Name" class="form-control" />
-            </div>
-            <div>
-                <label>Email:</label>
-                <input type="email" @bind="attendee.Email" class="form-control" />
-            </div>
-            <button class="btn btn-primary mt-3" @onclick="Register">Register</button>
 
-            @if (!string.IsNullOrEmpty(registrationMessage))
-            {
-                <p class="text-success mt-2">@registrationMessage</p>
-            }
+            <EditForm Model="attendee" OnValidSubmit="Register">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-2">
+                    <label>Name:</label>
+                    <InputText @bind-Value="attendee.Name" class="form-control" />
+                    <ValidationMessage For="@(() => attendee.Name)" class="text-danger" />
+                </div>
+
+                <div class="mb-2">
+                    <label>Email:</label>
+                    <InputText @bind-Value="attendee.Email" class="form-control" />
+                    <ValidationMessage For="@(() => attendee.Email)" class="text-danger" />
+                </div>
+
+                <button class="btn btn-primary mt-3" type="submit" disabled="@isSubmitting">Register</button>
+
+                @if (!string.IsNullOrEmpty(registrationMessage))
+                {
+                    <p class="text-success mt-2">@registrationMessage</p>
+                }
+            </EditForm>
+
+            <hr />
+
+            <h5>Registered Attendees</h5>
+            <ul>
+                @foreach (var attendee in attendees)
+                {
+                    <li>@attendee.Name (@attendee.Email)</li>
+                }
+            </ul>
         </div>
     </div>
 }
@@ -43,30 +69,44 @@ else
     private Event? eventDetails;
     private Attendee attendee = new();
     private string registrationMessage = string.Empty;
+    private bool isSubmitting = false;
+    private List<Attendee> attendees = new();
 
     protected override async Task OnInitializedAsync()
     {
         eventDetails = await EventService.GetEventById(EventId);
+        attendees = await AttendanceService.GetAttendees(EventId);
+
+        // Check if the user has a session
+        var (name, email) = UserSessionService.GetUser();
+        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(email))
+        {
+            attendee.Name = name;
+            attendee.Email = email;
+        }
+
         attendee.EventId = EventId; // Associate attendee with the event
     }
 
     private async Task Register()
     {
-        if (string.IsNullOrWhiteSpace(attendee.Name) || string.IsNullOrWhiteSpace(attendee.Email))
-        {
-            registrationMessage = "Please enter both name and email.";
-            return;
-        }
+        isSubmitting = true;
+        registrationMessage = string.Empty;
 
-        bool success = await EventService.RegisterForEvent(attendee);
+        bool success = await AttendanceService.RegisterAttendee(attendee);
 
         if (success)
         {
+            UserSessionService.SetUser(attendee.Name, attendee.Email);
             registrationMessage = "Registration successful!";
+            attendees = await AttendanceService.GetAttendees(EventId); // Refresh attendee list
+            attendee = new Attendee { EventId = EventId }; // Reset form
         }
         else
         {
             registrationMessage = "Registration failed. Please try again.";
         }
+
+        isSubmitting = false;
     }
 }
